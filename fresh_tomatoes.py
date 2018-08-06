@@ -3,6 +3,7 @@ import os
 import re
 
 
+
 # Styles and scripting for the page
 main_page_head = '''
 <!DOCTYPE html>
@@ -101,33 +102,51 @@ main_page_content = '''
         </div>
       </div>
     </div>
-
     <!-- Main Page Content -->
     <div class="container">
       <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div class="container">
           <div class="navbar-header">
-            <a class="navbar-brand" href="#">Fresh Tomatoes Movie Trailers</a>
+            <a class="navbar-brand" href="#">Fresh Tomatoes Movies & Tv Shows</a>
           </div>
         </div>
       </div>
     </div>
     <div class="container">
       {movie_tiles}
+      {tv_show_tiles}                             # TV Show tiles added
     </div>
   </body>
 </html>
 '''
 
 
-# A single movie entry html template
+# A single movie entry html template___________________________________________________________________________________________________
 movie_tile_content = '''
 <div class="col-md-6 col-lg-4 movie-tile text-center" data-trailer-youtube-id="{trailer_youtube_id}" data-toggle="modal" data-target="#trailer">
-    <img src="{poster_image_url}" width="220" height="342">
+    <img src="{poster_image_url}" width="300" height="450">
     <h2>{movie_title}</h2>
+    <h3>Genre:{movie_genre}</h3>
+    <h6>Story:{movie_story}</h5>
+    <h6>Duration(min):{movie_duration}</h5>
 </div>
 '''
 
+#A signle Tv Show entry html template_________________________________________________________________________________________________
+tv_show_tile_content = '''
+<div class="col-md-6 col-lg-4 movie-tile text-center" data-trailer-youtube-id="{trailer_youtube_id}" data-toggle="modal" data-target="#trailer">
+    <img src="{poster_image_url}" width="300" height="450">
+    <h2>{tv_show_title}</h2>
+    <h3>Genre:{tv_show_genre}</h3>
+    <h3>Season:{tv_show_season}</h3>
+    <h6>Story:{tv_show_story}</h5>
+    <h6>Duration(min):{tv_show_duration}</h5>
+</div>
+'''
+
+
+
+#Movie Show content  function_________________________________________________________________________________________________________
 
 def create_movie_tiles_content(movies):
     # The HTML content for this section of the page
@@ -142,21 +161,50 @@ def create_movie_tiles_content(movies):
                               else None)
 
         # Append the tile for the movie with its content filled in
-        content += movie_tile_content.format(
+        content += movie_tile_content.format(movie_imdb=movie.Imdb,
+            movie_duration=movie.duration,movie_genre=movie.genre,
+            movie_story=movie.storyline,
             movie_title=movie.title,
             poster_image_url=movie.poster_image_url,
-            trailer_youtube_id=trailer_youtube_id
-        )
+            trailer_youtube_id=trailer_youtube_id )
     return content
 
 
-def open_movies_page(movies):
-    # Create or overwrite the output file
-    output_file = open('fresh_tomatoes.html', 'w')
+#Tv Show content function_____________________________________________________________________________________________________________
 
-    # Replace the movie tiles placeholder generated content
+def create_tv_show_tiles_content(tv_shows):
+    # The HTML content for this section of the page
+    content = ''
+    for tv_show in tv_shows:
+        # Extract the youtube ID from the url
+        youtube_id_match = re.search(
+            r'(?<=v=)[^&#]+', tv_show.trailer_youtube_url)
+        youtube_id_match = youtube_id_match or re.search(
+            r'(?<=be/)[^&#]+', tv_show.trailer_youtube_url)
+        trailer_youtube_id = (youtube_id_match.group(0) if youtube_id_match
+                              else None)
+
+        # Append the tile for the tv show with its content filled in
+        content += tv_show_tile_content.format(tv_show_imdb=tv_show.Imdb,
+            tv_show_duration=tv_show.duration,tv_show_genre=tv_show.genre,
+            tv_show_story=tv_show.storyline,
+            tv_show_season=tv_show.season,
+            tv_show_title=tv_show.title,
+            poster_image_url=tv_show.poster_image_url,
+            trailer_youtube_id=trailer_youtube_id )
+    return content
+
+
+
+
+
+def open_page(movies,tv_shows):
+    # Create or overwrite the output file
+    output_file = open('fresh_tomatoes1.html', 'w')
+
+    # Replace the movie tiles & TV show tiles placeholder generated content
     rendered_content = main_page_content.format(
-        movie_tiles=create_movie_tiles_content(movies))
+        movie_tiles=create_movie_tiles_content(movies),tv_show_tiles=create_tv_show_tiles_content(tv_shows))
 
     # Output the file
     output_file.write(main_page_head + rendered_content)
